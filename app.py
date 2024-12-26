@@ -5,7 +5,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
 
-# Set page configuration
+ 
 st.set_page_config(
     page_title="📚 Book Buddy - Your Personal Book Recommender",
     page_icon="📚",
@@ -65,10 +65,10 @@ class BookRecommender:
         self.df['authors'] = self.df['authors'].str.strip()
         self.df['clean_title'] = self.df['title'].str.replace(r'\(.*\)', '').str.strip()
         
-        # Convert publication_date to datetime
+         
         self.df['publication_date'] = pd.to_datetime(self.df['publication_date'], errors='coerce')
 
-        # Handle missing values in the dataframe
+         
         self.df = self.df.dropna(subset=['title', 'authors', 'average_rating'])
 
     def get_title_similarity(self, title1, title2):
@@ -87,7 +87,7 @@ class BookRecommender:
         if by == 'title':
             for idx, row in self.df.iterrows():
                 similarity = self.get_title_similarity(query, row['clean_title'])
-                if similarity < 1.0:  # Exclude exact matches
+                if similarity < 1.0:  
                     similarities.append(self._create_recommendation_dict(row, similarity))
         
         elif by == 'author':
@@ -109,36 +109,32 @@ class BookRecommender:
             'publication_date': row['publication_date'],
             'ratings_count': row['ratings_count']
         }
-        
-        # Check if 'num_pages' column exists
+         
         if 'num_pages' in row:
             recommendation['num_pages'] = row['num_pages']
         else:
-            recommendation['num_pages'] = 'N/A'  # Use 'N/A' or a default value
+            recommendation['num_pages'] = 'N/A'  
         
         return recommendation
-
-# Load data from CSV file with error handling for malformed rows
+ 
 @st.cache_data
 def load_data():
-    try:
-        # Read CSV with error handling for rows with mismatched columns
-        data = pd.read_csv("books_data/books.csv", on_bad_lines='skip')  # Skip bad lines
+    try: 
+        data = pd.read_csv("books.csv", on_bad_lines='skip')   
         # Clean the data
-        data['title'] = data['title'].str.strip()  # Ensure 'title' column exists
-        data['authors'] = data['authors'].str.strip()  # Ensure 'authors' column exists
+        data['title'] = data['title'].str.strip()  
+        data['authors'] = data['authors'].str.strip()  
         data['publication_date'] = pd.to_datetime(data['publication_date'], errors='coerce')
-        data = data.dropna(subset=['title', 'authors', 'average_rating'])  # Remove rows with missing key columns
+        data = data.dropna(subset=['title', 'authors', 'average_rating'])  
         return data
     except Exception as e:
         st.error(f"Error loading data: {e}")
         return pd.DataFrame()
 
 def main():
-    st.title("📚 Book Buddy - Your Personal Book Recommender")
+    st.title("📚 ReadWise - Your Personal Book Recommender")
     st.markdown("#### Discover your next favorite read!")
-
-    # Load data
+ 
     data = load_data()
     
     if data.empty:
@@ -146,18 +142,15 @@ def main():
         return
 
     recommender = BookRecommender(data)
-
-    # Sidebar
+ 
     st.sidebar.header("Recommendation Settings")
-
-    # Search type selection
+ 
     search_type = st.sidebar.radio(
         "Search by:",
         ["Book Title", "Author"],
         key="search_type"
     )
-
-    # Dynamic dropdown based on search type
+ 
     if search_type == "Book Title":
         query = st.sidebar.selectbox(
             "Select a book:",
@@ -179,12 +172,10 @@ def main():
         max_value=10,
         value=5
     )
-
-    # Get recommendations
+ 
     if st.sidebar.button("Get Recommendations"):
         recommendations = recommender.recommend_books(query, by, n_recommendations)
-        
-        # Display recommendations in a grid
+         
         for i, book in enumerate(recommendations, 1):
             with st.container():
                 st.markdown(f"""
@@ -194,8 +185,7 @@ def main():
                     <p><strong>Similarity Score:</strong> {book['similarity']:.2f}</p>
                 </div>
                 """, unsafe_allow_html=True)
-
-                # Create three columns for metrics
+ 
                 col1, col2, col3 = st.columns(3)
 
                 with col1:
@@ -221,11 +211,9 @@ def main():
                         <h2>📊 {book['ratings_count']:,}</h2>
                     </div>
                     """, unsafe_allow_html=True)
-
-        # Visualization section
+ 
         st.subheader("📊 Visualization")
-
-        # Create rating distribution plot
+ 
         fig_ratings = px.bar(
             pd.DataFrame(recommendations),
             x='title',
